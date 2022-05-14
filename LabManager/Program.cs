@@ -70,5 +70,60 @@ if(modelName == "Computer")
         connection.Close(); // fecha a conexão
     }
 
+    if(ModelAction == "Show")
+    {
+       int id = Convert.ToInt32(args[2]);
+
+        connection = new SqliteConnection("Data Source=database.db");
+        connection.Open(); //ABRIR O ARQUIVO/conexão database.db
+
+        command = connection.CreateCommand(); //comando criado no banco aberto
+        command.CommandText = "SELECT * FROM Computers WHERE id = ($id)";
+        command.Parameters.AddWithValue("$id", id);
+        var reader = command.ExecuteReader();
+        reader.Read();
+        Console.WriteLine("{0}, {1}, {2}", reader.GetInt32(0), reader.GetString(1), reader.GetString(2));
+        connection.Close(); // fecha a conexão
+
+    }
+
+    if(ModelAction == "Update")
+    {
+        int id = Convert.ToInt32(args[2]);
+        string ram = args[3];
+        string processor = args[4];
+
+        connection = new SqliteConnection("Data Source=database.db");
+        connection.Open(); //ABRIR O ARQUIVO/conexão database.db
+
+        command = connection.CreateCommand(); //comando criado no banco aberto
+        command.CommandText = "UPDATE Computers SET ram = ($ram), processor = ($processor) WHERE id = ($id)";
+        command.Parameters.AddWithValue("$id", id);
+        command.Parameters.AddWithValue("$ram", ram);
+        command.Parameters.AddWithValue("$processor", processor);
+
+        command.ExecuteNonQuery();
+
+
+        connection.Close(); // fecha a conexão
+    }
+
+    if(ModelAction == "Delete")
+    {
+        int id = Convert.ToInt32(args[2]);
+
+        connection = new SqliteConnection("Data Source=database.db");
+        connection.Open(); //ABRIR O ARQUIVO/conexão database.db
+
+        command = connection.CreateCommand(); //comando criado no banco aberto
+        command.CommandText = "DELETE FROM Computers WHERE id = ($id)";
+        command.Parameters.AddWithValue("$id", id);
+
+        command.ExecuteNonQuery();
+
+
+        connection.Close(); // fecha a conexão
+    }
+
 
 }
