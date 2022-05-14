@@ -10,7 +10,7 @@
 
 ## Tecnologias Utiizadas
 
-- dotnet 2.1
+- dotnet 6
 
 ## Como Executar
 
