@@ -1,4 +1,14 @@
 ﻿using Microsoft.Data.Sqlite; //importar o sqlite
+using LabManager.Database;
+using LabManager.Repositories;
+using LabManager.Models;
+
+var databaseConfig = new DatabaseConfig(); // cria objeto de string de conexão
+
+var databaseSetup = new DatabaseSetup(databaseConfig); //instancia o database e já executa os método
+
+var computerRepository = new ComputerRepository(databaseConfig);
+var labRepository = new LabRepository(databaseConfig);
 
 // See https://aka.ms/new-console-template for more information
 //Console.WriteLine(args);
@@ -7,235 +17,151 @@
 //    Console.WriteLine(arg);
 //}
 
-var connection = new SqliteConnection("Data Source=database.db");
-connection.Open(); //ABRIR O ARQUIVO/conexão database.db
-
-
-var command = connection.CreateCommand(); //comando criado no banco aberto
-command.CommandText = @"
-    CREATE TABLE IF NOT EXISTS Computers(
-        id int not null primary key,
-        ram varchar(100) not null,
-        processor varchar(100) not null
-    );
-
-    CREATE TABLE IF NOT EXISTS Lab(
-        id_lab int not null primary key,
-        number int not null,
-        name varchar(100) not null,
-        block varchar(10) not null
-    );
-"; //@ - STRING COM QUEBRA DE LINHA
-//if not exists - se a tabela nao for criada
-
-command.ExecuteNonQuery(); //create table não devolve nada, se fosse select teria retorno
-connection.Close(); // fecha a conexão
-
 
 var modelName = args[0];
-var ModelAction = args[1];
+var modelAction = args[1];
 //var - infere o tipo da variavel - diminui o código e fica mais legível
 
 if(modelName == "Computer")
 {
-    if(ModelAction == "List")
+    if(modelAction == "List")
     {
-        connection = new SqliteConnection("Data Source=database.db");
-        connection.Open(); //ABRIR O ARQUIVO/conexão database.db
-
-
-        command = connection.CreateCommand(); //comando criado no banco aberto
-        command.CommandText = "SELECT * FROM Computers";
-
-        var reader = command.ExecuteReader(); //representa o resultado da tabela
-
-        while(reader.Read())
+        Console.WriteLine("Computer List");
+        foreach (var computer in computerRepository.GetAll())
         {
-            Console.WriteLine("{0}, {1}, {2}", reader.GetInt32(0), reader.GetString(1), reader.GetString(2)); //pegar o valor, readers em objeto Computador
+            Console.WriteLine($"{computer.Id}, {computer.Ram}, {computer.Processor}");            
         }
-
-        connection.Close(); // fecha a conexão
     }
 
-    if(ModelAction == "New")
+    if(modelAction == "New")
     {
-        int id = Convert.ToInt32(args[2]);
-        string ram = args[3];
-        string processor = args[4];
-
-        connection = new SqliteConnection("Data Source=database.db");
-        connection.Open(); //ABRIR O ARQUIVO/conexão database.db
-
-
-        command = connection.CreateCommand(); //comando criado no banco aberto
-        command.CommandText = "INSERT INTO Computers VALUES ($id, $ram, $processor)"; //@ - STRING COM QUEBRA DE LINHA
-        command.Parameters.AddWithValue("$id", id);
-        command.Parameters.AddWithValue("$ram", ram);
-        command.Parameters.AddWithValue("$processor", processor);
-
-        command.ExecuteNonQuery(); //create não devolve nada, se fosse select teria retorno
-        connection.Close(); // fecha a conexão
+        Console.WriteLine("Computer New");
+        if(computerRepository.ExistsById(Convert.ToInt32(args[2])))
+        {
+            Console.WriteLine($"Computer de id {args[2]} já existe");
+        }
+        else
+        {
+            var computer = new Computer(Convert.ToInt32(args[2]), args[3], args[4]);
+            computerRepository.Save(computer);
+            Console.WriteLine("Computer adicionado");
+        }
     }
 
-    if(ModelAction == "Show")
+    if(modelAction == "Update")
     {
-       int id = Convert.ToInt32(args[2]);
-
-        connection = new SqliteConnection("Data Source=database.db");
-        connection.Open(); //ABRIR O ARQUIVO/conexão database.db
-
-        command = connection.CreateCommand(); //comando criado no banco aberto
-        command.CommandText = "SELECT * FROM Computers WHERE id = ($id)";
-        command.Parameters.AddWithValue("$id", id);
-        var reader = command.ExecuteReader();
-        reader.Read();
-        Console.WriteLine("{0}, {1}, {2}", reader.GetInt32(0), reader.GetString(1), reader.GetString(2));
-        connection.Close(); // fecha a conexão
-
+        Console.WriteLine("Computer Update");
+        if(computerRepository.ExistsById(Convert.ToInt32(args[2])))
+        {
+            var computer = new Computer(Convert.ToInt32(args[2]), args[3], args[4]);
+            computerRepository.Update(computer);
+            Console.WriteLine("Computer atualizado");
+        }
+        else
+        {
+            Console.WriteLine($"O Computador com Id {args[2]} não existe");
+        }
     }
 
-    if(ModelAction == "Update")
+    if(modelAction == "Show")
     {
-        int id = Convert.ToInt32(args[2]);
-        string ram = args[3];
-        string processor = args[4];
-
-        connection = new SqliteConnection("Data Source=database.db");
-        connection.Open(); //ABRIR O ARQUIVO/conexão database.db
-
-        command = connection.CreateCommand(); //comando criado no banco aberto
-        command.CommandText = "UPDATE Computers SET ram = ($ram), processor = ($processor) WHERE id = ($id)";
-        command.Parameters.AddWithValue("$id", id);
-        command.Parameters.AddWithValue("$ram", ram);
-        command.Parameters.AddWithValue("$processor", processor);
-
-        command.ExecuteNonQuery();
-
-
-        connection.Close(); // fecha a conexão
+        Console.WriteLine("Computer Show");
+        if(computerRepository.ExistsById(Convert.ToInt32(args[2])))
+        {
+            var computerShow = computerRepository.GetById(Convert.ToInt32(args[2]));
+            Console.WriteLine($"{computerShow.Id}, {computerShow.Ram}, {computerShow.Processor}");
+        }
+        else
+        {
+            Console.WriteLine($"O Computador com Id {args[2]} não existe");
+        }
     }
 
-    if(ModelAction == "Delete")
+    if(modelAction == "Delete")
     {
-        int id = Convert.ToInt32(args[2]);
-
-        connection = new SqliteConnection("Data Source=database.db");
-        connection.Open(); //ABRIR O ARQUIVO/conexão database.db
-
-        command = connection.CreateCommand(); //comando criado no banco aberto
-        command.CommandText = "DELETE FROM Computers WHERE id = ($id)";
-        command.Parameters.AddWithValue("$id", id);
-
-        command.ExecuteNonQuery();
-
-
-        connection.Close(); // fecha a conexão
+        Console.WriteLine("Computer Delete");
+        if(computerRepository.ExistsById(Convert.ToInt32(args[2])))
+        {
+            computerRepository.Delete(Convert.ToInt32(args[2]));
+            Console.WriteLine($"O Computer de id {args[2]} foi removido");
+        }
+        else
+        {
+            Console.WriteLine($"O Computador com Id {args[2]} não existe");
+        }
     }
-
 
 }
 
-//Crud Lab
+
 
 if(modelName == "Lab")
 {
-    if(ModelAction == "List")
+    if(modelAction == "List")
     {
-        connection = new SqliteConnection("Data Source=database.db");
-        connection.Open(); //ABRIR O ARQUIVO/conexão database.db
-
-
-        command = connection.CreateCommand(); //comando criado no banco aberto
-        command.CommandText = "SELECT * FROM Lab";
-
-        var reader = command.ExecuteReader(); //representa o resultado da tabela
-
-        while(reader.Read())
+        Console.WriteLine("Lab List");
+        foreach (var lab in labRepository.GetAll())
         {
-            Console.WriteLine("{0}, {1}, {2}, {3}", reader.GetInt32(0), reader.GetInt32(1), reader.GetString(2), reader.GetString(3)); //pegar o valor, readers em objeto Lab
+            Console.WriteLine($"{lab.Id}, {lab.Number}, {lab.Name}, {lab.Block}");            
         }
-
-        connection.Close(); // fecha a conexão
     }
 
-    if(ModelAction == "New")
+    if(modelAction == "New")
     {
-        int id_lab = Convert.ToInt32(args[2]);
-        int number = Convert.ToInt32(args[3]);
-        string name = args[4];
-        string block = args[5];
-
-        connection = new SqliteConnection("Data Source=database.db");
-        connection.Open(); //ABRIR O ARQUIVO/conexão database.db
-
-
-        command = connection.CreateCommand(); //comando criado no banco aberto
-        command.CommandText = "INSERT INTO Lab VALUES ($id_lab, $number, $name, $block)"; //@ - STRING COM QUEBRA DE LINHA
-        command.Parameters.AddWithValue("$id_lab", id_lab);
-        command.Parameters.AddWithValue("$number", number);
-        command.Parameters.AddWithValue("$name", name);
-        command.Parameters.AddWithValue("$block", block);
-
-        command.ExecuteNonQuery(); //create não devolve nada, se fosse select teria retorno
-        connection.Close(); // fecha a conexão
+        Console.WriteLine("Lab New");
+        if(labRepository.ExistsById(Convert.ToInt32(args[2])))
+        {
+            Console.WriteLine($"Lab de id {args[2]} já existe");
+        }
+        else
+        {
+            var lab = new Lab(Convert.ToInt32(args[2]), Convert.ToInt32(args[3]), args[4], args[5]);
+            labRepository.Save(lab);
+            Console.WriteLine("Lab adicionado");
+        }
     }
 
-    if(ModelAction == "Show")
+    if(modelAction == "Update")
     {
-       int id_lab = Convert.ToInt32(args[2]);
-
-        connection = new SqliteConnection("Data Source=database.db");
-        connection.Open(); //ABRIR O ARQUIVO/conexão database.db
-
-        command = connection.CreateCommand(); //comando criado no banco aberto
-        command.CommandText = "SELECT * FROM Lab WHERE id_lab = ($id_lab)";
-        command.Parameters.AddWithValue("$id_lab", id_lab);
-        var reader = command.ExecuteReader();
-        reader.Read();
-        Console.WriteLine("{0}, {1}, {2}, {3}", reader.GetInt32(0), reader.GetInt32(1), reader.GetString(2), reader.GetString(3)); //pegar o valor, readers em objeto Lab
-        connection.Close(); // fecha a conexão
-
+        Console.WriteLine("Lab Update");
+        if(labRepository.ExistsById(Convert.ToInt32(args[2])))
+        {
+            var lab = new Lab(Convert.ToInt32(args[2]), Convert.ToInt32(args[3]), args[4], args[5]);
+            labRepository.Update(lab);
+            Console.WriteLine("Lab atualizado");
+        }
+        else
+        {
+            Console.WriteLine($"O Lab com Id {args[2]} não existe");
+        }
     }
 
-    if(ModelAction == "Update")
+    if(modelAction == "Show")
     {
-        int id_lab = Convert.ToInt32(args[2]);
-        int number = Convert.ToInt32(args[3]);
-        string name = args[4];
-        string block = args[5];
-
-        connection = new SqliteConnection("Data Source=database.db");
-        connection.Open(); //ABRIR O ARQUIVO/conexão database.db
-
-        command = connection.CreateCommand(); //comando criado no banco aberto
-        command.CommandText = "UPDATE Lab SET number = ($number), name = ($name), block = ($block) WHERE id_lab = ($id_lab)";
-        command.Parameters.AddWithValue("$id_lab", id_lab);
-        command.Parameters.AddWithValue("$number", number);
-        command.Parameters.AddWithValue("$name", name);
-        command.Parameters.AddWithValue("$block", block);
-
-        command.ExecuteNonQuery();
-
-
-        connection.Close(); // fecha a conexão
+        Console.WriteLine("Lab Show");
+        if(labRepository.ExistsById(Convert.ToInt32(args[2])))
+        {
+            var labShow = labRepository.GetById(Convert.ToInt32(args[2]));
+            Console.WriteLine($"{labShow.Id}, {labShow.Number}, {labShow.Name}, {labShow.Block}"); 
+        }
+        else
+        {
+            Console.WriteLine($"O Lab com Id {args[2]} não existe");
+        }
     }
 
-    if(ModelAction == "Delete")
+    if(modelAction == "Delete")
     {
-        int id_lab = Convert.ToInt32(args[2]);
-
-        connection = new SqliteConnection("Data Source=database.db");
-        connection.Open(); //ABRIR O ARQUIVO/conexão database.db
-
-        command = connection.CreateCommand(); //comando criado no banco aberto
-        command.CommandText = "DELETE FROM Lab WHERE id_lab = ($id_lab)";
-        command.Parameters.AddWithValue("$id_lab", id_lab);
-
-        command.ExecuteNonQuery();
-
-
-        connection.Close(); // fecha a conexão
+        Console.WriteLine("Lab Delete");
+        if(labRepository.ExistsById(Convert.ToInt32(args[2])))
+        {
+            labRepository.Delete(Convert.ToInt32(args[2]));
+            Console.WriteLine($"O lab de id {args[2]} foi removido");
+        }
+        else
+        {
+            Console.WriteLine($"O Lab com Id {args[2]} não existe");
+        }
     }
-
 
 }
