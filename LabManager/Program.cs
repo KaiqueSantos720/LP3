@@ -8,14 +8,8 @@ var databaseConfig = new DatabaseConfig(); // cria objeto de string de conexão
 var databaseSetup = new DatabaseSetup(databaseConfig); //instancia o database e já executa os método
 
 var computerRepository = new ComputerRepository(databaseConfig);
-var labRepository = new LabRepository(databaseConfig);
 
-// See https://aka.ms/new-console-template for more information
-//Console.WriteLine(args);
-//foreach (var arg in args)
-//{
-//    Console.WriteLine(arg);
-//}
+var labRepository = new LabRepository(databaseConfig);
 
 
 var modelName = args[0];
@@ -27,9 +21,16 @@ if(modelName == "Computer")
     if(modelAction == "List")
     {
         Console.WriteLine("Computer List");
-        foreach (var computer in computerRepository.GetAll())
+        if(computerRepository.GetAll().Count == 0)
         {
-            Console.WriteLine($"{computer.Id}, {computer.Ram}, {computer.Processor}");            
+            Console.WriteLine("Nenhum computer cadastrado");
+        }
+        else
+        {
+            foreach (var computer in computerRepository.GetAll())
+            {
+                Console.WriteLine($"{computer.Id}, {computer.Ram}, {computer.Processor}");            
+            }
         }
     }
 
@@ -100,9 +101,17 @@ if(modelName == "Lab")
     if(modelAction == "List")
     {
         Console.WriteLine("Lab List");
-        foreach (var lab in labRepository.GetAll())
+        
+        if(labRepository.GetAll().Count == 0)
         {
-            Console.WriteLine($"{lab.Id}, {lab.Number}, {lab.Name}, {lab.Block}");            
+            Console.WriteLine("Nenhum lab cadastrado");
+        }
+        else
+        {
+            foreach (var lab in labRepository.GetAll())
+            {
+                Console.WriteLine($"{lab.Id}, {lab.Number}, {lab.Name}, {lab.Block}");            
+            }
         }
     }
 
