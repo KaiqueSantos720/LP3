@@ -65,14 +65,14 @@ public class JogosRepository
 
     }
 
-    public IEnumerable<Jogo> GetAllDapper()
+    public List<Jogo> GetAllDapper()
     {
         using var connection = new SqliteConnection(_databaseConfig.ConnectionString);
         connection.Open();
         
         var jogos = connection.Query<Jogo>("SELECT * FROM Jogos");
 
-        return jogos;
+        return jogos.ToList();
 
     }
 
@@ -251,6 +251,17 @@ public class JogosRepository
         var result = Convert.ToDouble(connection.ExecuteScalar("SELECT min(preco) FROM Jogos"));
 
         return result;
+    }
+
+    public List<Jogo> PrecoEntre(double primeiroPreco, double segundoPreco)
+    {
+        using var connection = new SqliteConnection(_databaseConfig.ConnectionString);
+        connection.Open();
+        
+        var jogos = connection.Query<Jogo>("SELECT * FROM Jogos WHERE preco BETWEEN @PrimeiroPreco AND @SegundoPreco", new {PrimeiroPreco = primeiroPreco, SegundoPreco = segundoPreco});
+
+        return jogos.ToList();
+
     }
 
     public bool VerificarExistencia(int id)

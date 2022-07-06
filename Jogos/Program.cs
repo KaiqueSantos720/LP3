@@ -199,6 +199,26 @@ if(modelName == "Jogo")
         }
     }
 
+    if(modelAction == "Entre")
+    {
+        if (dapper)
+        {
+            if(jogosRepository.PrecoEntre(Convert.ToDouble(args[3]), Convert.ToDouble(args[4])).Count == 0)
+            {
+                Console.WriteLine("Não há dados no banco");
+            }
+            else
+            {
+                Console.WriteLine("Preço Entre");
+
+                foreach(var jogo in jogosRepository.PrecoEntre(Convert.ToDouble(args[3]), Convert.ToDouble(args[4])))
+                {
+                    Console.WriteLine($"{jogo.Id} - {jogo.Nome} - {jogo.Desenvolvedora} - {jogo.Preco}");
+                }
+            }
+        }
+    }
+
     if(modelAction == "Max")
     {
         if (!dapper)
